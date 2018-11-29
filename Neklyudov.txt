@@ -1,0 +1,44 @@
+1. SELECT Products.Name FROM ProductCategories JOIN ProductSubCategories 
+  	ON ProductSubCategories.CategoryId=ProductCategories.Id 
+  	JOIN Products ON Products.SubCategoryId=ProductSubCategories.Id 
+  	WHERE CategoryId=2;
+
+2. SELECT ProductSubCategories.Name AS "Наименование Таблицы", COUNT(SubCategoryId) as "Кол-во" from  ProductSubCategories 
+	LEFT JOIN Products 
+   	ON SubCategoryId=ProductSubCategories.Id 
+   GROUP BY ProductSubCategories.name;
+
+3. SELECT ProductSubCategories.Name AS "Наименование Таблицы", COUNT(SubCategoryId) AS "Кол-во", 
+	  CASE 
+	     WHEN COUNT(Products.SubCategoryId)=0 THEN 'Закончился'
+	     WHEN COUNT(Products.SubCategoryId)<2 THEN 'Заканчивается' 
+	     ELSE 'В наличии' 
+	   END 
+   AS "Наличие" FROM  ProductSubCategories LEFT JOIN Products 
+  ON SubCategoryId=ProductSubCategories.Id GROUP BY ProductSubCategories.name;
+
+
+4.
+	SELECT
+		ISNULL(t.cat,'Itogo')  AS "Категория\Подкатегория",
+		SUM(CASE WHEN(t.SUBCAT = 'Plush') THEN t.CNT ELSE 0 END) AS "Плюшевые", 
+		SUM(CASE WHEN(t.SUBCAT = 'Dolls') THEN t.CNT ELSE 0 END) AS "Куклы", 
+		SUM(CASE WHEN(t.SUBCAT = 'Other') THEN t.CNT ELSE 0 END) AS "Прочее", 
+		SUM(CASE WHEN(t.SUBCAT = 'Fairytails') THEN t.CNT ELSE 0 END) AS "Сказки", 
+		SUM(t.CNT) AS "Итого"  
+	FROM
+		(SELECT ProductCategories.Name AS CAT, 
+		ProductSubCategories.Code AS SUBCAT, COUNT(products.id) as CNT
+		FROM productcategories 
+		JOIN ProductSubCategories ON(CategoryId = ProductCategories.Id)
+		LEFT JOIN Products ON (SubCategoryId=ProductSubCategories.Id)
+		GROUP BY ProductSubCategories.Code,Products.Id,ProductCategories.Name) t
+	GROUP BY ROLLUP(t.CAT);
+5. В связи с неоднозначной формулировкой прилагаю 2 варианта:
+	а) В случае, если принять, что в названиях книг не указывается цвет
+		SELECT Products.Name FROM Products JOIN ProductSubCategories
+			ON Products.SubCategoryID=ProductSubCategories.Id
+			WHERE Products.Name LIKE '%розов%' AND CategoryId!=2;
+	б) Обработать слова прилагательные, описывающие цвет(розовый, розового, розовая):
+		SELECT P.Name FROM Products P
+		WHERE P.Name LIKE '%rozovyi%' OR P.Name LIKE '%rozovaya%' OR P.Name LIKE '%rozovogo%';
